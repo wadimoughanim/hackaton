@@ -6,10 +6,10 @@ contract InterestRateSwap {
     uint256 public notional;
     uint256 public fixedRate;
     uint256 public variableRate;
-    uint256 public maturity; // en blocs
+    uint256 public maturity;
     uint256 public leverage;
-    uint256 public lastSwapTime;
-    uint256 public swapInterval = 5; // 5 secondes
+
+    uint256 public accruedAmount;
 
     constructor(
         address _partyA,
@@ -25,25 +25,25 @@ contract InterestRateSwap {
         notional = _notional;
         fixedRate = _fixedRate;
         variableRate = _variableRate;
-        maturity = block.number + _maturity;
+        maturity = block.timestamp + _maturity;
         leverage = _leverage;
-        lastSwapTime = block.timestamp;
     }
 
-    function swap() public {
-        require(block.timestamp > lastSwapTime + swapInterval, "Wait for the next swap interval");
-        require(block.number <= maturity, "The swap contract has reached maturity");
+    function accrueInterest() public {
+        require(block.timestamp <= maturity, "The swap contract has reached maturity");
 
         uint256 swapValue = (notional * (fixedRate - variableRate)) / 100;
         swapValue *= leverage;
 
-        require(address(this).balance >= swapValue, "Not enough balance for the swap");
+        accruedAmount += swapValue;
+    }
 
-        // Transfert du swapValue de partyA à partyB
-        (bool success, ) = partyB.call{value: swapValue}("");
+    function finalizeSwap() public {
+        require(block.timestamp > maturity, "The swap contract hasn't reached maturity yet");
+
+        // Transfert du montant accumulé de partyA à partyB
+        (bool success, ) = partyB.call{value: accruedAmount}("");
         require(success, "Transfer failed.");
-
-        lastSwapTime = block.timestamp;
     }
 
     receive() external payable {}

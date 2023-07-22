@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "forge-std/Script.sol";
 import "../src/InterestRateSwap.sol";
+import "forge-std/Script.sol";
 
-contract DeployInterestRateSwap is Script {
-    constructor() Script(msg.sender) {}
+contract InterestRateSwapScript is Script {
+    InterestRateSwap public swap;
 
-    function run() public override {
-        InterestRateSwap swap = new InterestRateSwap(
-            1000000, // _notional
-            3 * 10**16, // _fixedRate
-            10000, // _maturity
-            1 // _frequency
-        );
+    constructor() Script() {}
+
+    function run() public {
+        swap = new InterestRateSwap(100000, 30000000000000000, 5000, 180);
     }
 }

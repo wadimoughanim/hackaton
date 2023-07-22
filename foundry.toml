@@ -1,7 +1,0 @@
-[networks.zk]
-url = "https://polygon-zkevm-testnet.alchemyapi.io/v2/${ALCHEMY_PROJECT_ID}"
-type = "zkevm"
-chain = "polygon"
-
-[accounts]
-priv_keys = ["${PRIVATE_KEY}"]

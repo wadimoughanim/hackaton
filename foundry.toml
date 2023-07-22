@@ -1,6 +1,7 @@
-[profile.default]
-src = "src"
-out = "out"
-libs = ["lib"]
+[networks.zk]
+url = "https://polygon-zkevm-testnet.alchemyapi.io/v2/${ALCHEMY_PROJECT_ID}"
+type = "zkevm"
+chain = "polygon"
 
-# See more config options https://github.com/foundry-rs/foundry/tree/master/config
+[accounts]
+priv_keys = ["${PRIVATE_KEY}"]

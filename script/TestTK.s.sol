@@ -1,8 +1,9 @@
-// SPDX-License-Identifier: UNLICENSED
+// TestTK.s.sol
+
 pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
-import "./TokenERC20.sol";
+import "../src/TestTK.sol";
 
 contract TokenERC20Script is Script {
     TestTK public token;
@@ -13,6 +14,6 @@ contract TokenERC20Script is Script {
 
     function run() public {
         // Example of interaction: minting more tokens.
-        token._mint(address(this), 1000000);
+        token.mint(address(this), 1000000);
     }
 }

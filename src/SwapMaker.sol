@@ -1,8 +1,9 @@
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract InterestRateSwap {
+contract SwapMaker {
     address public fixedLeg;
     address public floatingLeg;
     IERC20 public token;

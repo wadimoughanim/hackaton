@@ -69,25 +69,7 @@ contract OrderBook {
             return order1.time < order2.time;
         }
         return false;
-        
     }
-function executeOrder(address limitMember, address marketMember, uint256 fixedRateValue, uint256 amount, bool isBid) internal {
-    uint256 tradeAmount = amount;
-    uint256 tradeValue = tradeAmount * fixedRateValue;
-    address payerFixed = isBid? limitMember : marketMember;
-    address receiverFixed = isBid? marketMember : limitMember;
-
-    Transaction transaction=new Transaction(setIdTrans,payerFixed,receiverFixed,fixedRate,flooatingRate,block.number,block.number+10,amount);
-
-    // Transfer tokens from taker to owner
-    //require(token.transferFrom(taker, owner, tradeValue), "OrderBook: executeOrder: transferFrom failed");
-
-    // Transfer tokens from owner to taker
-    //require(token.transferFrom(owner, taker, tradeAmount), "OrderBook: executeOrder: transferFrom failed");
-
-    // Emit an event
-    //emit OrderExecuted(owner, taker, tradeAmount, fixedRateValue, isBid);
-}
 
 function pushLimitOrder(uint256 orderID) public {
     Order memory order = OrderMap[orderID];
@@ -111,10 +93,6 @@ function pushLimitOrder(uint256 orderID) public {
     // Insert orderID at 'i'
     orders[i] = orderID;
 }
-
-
-
-
 
     function createLimitOrder(uint256 price, uint256 amount, bool isBid) public {
         Order memory order = Order(setId,price,block.timestamp,amount,msg.sender,isBid);
@@ -160,7 +138,7 @@ function popLimitOrder(bool isBid) public returns (uint256 orderID) {
             if (availableAmount > remainingAmount) {
                 
                 
-                executeOrder(order.owner,msg.sender,fixedRateValue,amount,isBid);      
+                // executeOrder(order.owner,msg.sender,fixedRateValue,amount,isBid);      
                 order.amount -= remainingAmount;
                 pushLimitOrder(order.id);
                 
@@ -169,7 +147,7 @@ function popLimitOrder(bool isBid) public returns (uint256 orderID) {
                        
             else {
                 
-                executeOrder(order.owner,msg.sender,fixedRateValue,order.amount,isBid);
+                // executeOrder(order.owner,msg.sender,fixedRateValue,order.amount,isBid);
                 remainingAmount -= availableAmount;
             }
             

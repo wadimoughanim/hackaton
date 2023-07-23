@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
+import "./VirtualPool.sol";
 
 contract OrderBook {
 
    struct Order{
         uint256 id;
-        uint256 price;
+        uint256 fixedRate;
         uint256 time;
         uint256 amount;
         address owner;
@@ -23,11 +24,15 @@ contract OrderBook {
     }
     
     uint256 public setId;
+    uint256 public setIdTrans;
     uint256[] public BidOrders;
     uint256[] public AskOrders;
     mapping (uint256 => Order) public OrderMap;
     mapping (uint256=>uint256[]) public TransactionsAtMaturity;
     mapping (uint256=>Transaction) public IdToTransaction;
+    uint256 public delta=5;
+    uint256 public periodToMaturity=10;
+    uint256 public lastBlockSeen=block.number;
 
 
 
@@ -43,13 +48,13 @@ contract OrderBook {
         if (BidOrders.length == 0) {
             revert("OrderBook: BestBid: no bid orders");
         }
-        return OrderMap[BidOrders[BidOrders.length-1]].price;
+        return OrderMap[BidOrders[BidOrders.length-1]].fixedRate;
     }
     function BestAsk() public view returns (uint256) {
         if (AskOrders.length == 0) {
             revert("OrderBook: BestAsk: no ask orders");
         }
-        return OrderMap[AskOrders[AskOrders.length-1]].price;
+        return OrderMap[AskOrders[AskOrders.length-1]].fixedRate;
     }
     function getLength(bool isBid) public view returns (uint256) {
         return isBid ? BidOrders.length : AskOrders.length;
@@ -62,14 +67,58 @@ contract OrderBook {
         Order memory order2 = OrderMap[orderID2];
         require(order1.isBid == order2.isBid,"OrderBook: firstBetween: orders must be of the same type");
 
-        if (order1.price < order2.price && order1.isBid || order1.price > order2.price && !order1.isBid) {
+        if (order1.fixedRate < order2.fixedRate && order1.isBid || order1.fixedRate > order2.fixedRate && !order1.isBid) {
             return true;
         }
-        if (order1.price == order2.price) {
+        if (order1.fixedRate == order2.fixedRate) {
             return order1.time < order2.time;
         }
         return false;
+        
     }
+function executeOrder(address limitMember, address marketMember, uint256 fixedRateValue, uint256 amount, bool isBid) internal {
+    uint256 floatingRate = 1000000;//id du floating rate
+    
+    address payerFixed = isBid? limitMember : marketMember;
+    address receiverFixed = isBid? marketMember : limitMember;
+
+    IdToTransaction[setIdTrans]=Transaction(setIdTrans,payerFixed,receiverFixed,fixedRateValue,floatingRate,block.number,block.number+periodToMaturity,amount);
+    TransactionsAtMaturity[block.number+periodToMaturity].push(setIdTrans);
+    setIdTrans++;
+    
+    // Transfer tokens from taker to owner
+    //require(token.transferFrom(taker, owner, tradeValue), "OrderBook: executeOrder: transferFrom failed");
+
+    // Transfer tokens from owner to taker
+    //require(token.transferFrom(owner, taker, tradeAmount), "OrderBook: executeOrder: transferFrom failed");
+
+    // Emit an event
+    //emit OrderExecuted(owner, taker, tradeAmount, fixedRateValue, isBid);
+}
+function executeTransaction(Transaction transaction) public {
+    require(block.number>=transaction.maturityBlock,"OrderBook: executeTransaction: transaction not mature");
+    require(block.number<=transaction.maturityBlock+delta,"OrderBook: executeTransaction: transaction expired");
+    require(msg.sender==transaction.payerfixed,"OrderBook: executeTransaction: sender not payer");
+    require(transaction.amount<=balanceOf(transaction.payerfixed),"OrderBook: executeTransaction: not enough balance");
+    require(transaction.amount<=balanceOf(transaction.receiverfixed),"OrderBook: executeTransaction: not enough balance");
+    balanceOf[transaction.payerfixed]-=transaction.amount;
+    balanceOf[transaction.receiverfixed]+=transaction.amount;
+    delete IdToTransaction[transaction.id];
+}
+function StateOfTransactions(Transaction transaction) public view returns (uint256){
+
+    for (uint256 i=lastBlockSeen;i<block.number;i++){
+        Transaction[] memory transactions = IdToTransaction[TransactionsAtMaturity[i]];
+        for (uint256 j=0;j<transactions.length;j++){
+            executeTransaction(transactions[j]);
+        }
+    }
+    lastBlockSeen = block.number;
+}
+
+
+
+
 
 function pushLimitOrder(uint256 orderID) public {
     Order memory order = OrderMap[orderID];
@@ -94,8 +143,14 @@ function pushLimitOrder(uint256 orderID) public {
     orders[i] = orderID;
 }
 
-    function createLimitOrder(uint256 price, uint256 amount, bool isBid) public {
-        Order memory order = Order(setId,price,block.timestamp,amount,msg.sender,isBid);
+
+
+
+
+    function createLimitOrder(uint256 fixedRate, uint256 amount, bool isBid) public {
+        Order memory order = Order(setId,fixedRate,block.timestamp,amount,msg.sender,isBid);
+
+        //marginCall(msg.sender,amount*delta*fixedRate*periodToMaturity);
         OrderMap[setId] = order;
         pushLimitOrder(setId);
         setId++;
@@ -138,7 +193,7 @@ function popLimitOrder(bool isBid) public returns (uint256 orderID) {
             if (availableAmount > remainingAmount) {
                 
                 
-                // executeOrder(order.owner,msg.sender,fixedRateValue,amount,isBid);      
+                executeOrder(order.owner,msg.sender,fixedRateValue,amount,isBid);      
                 order.amount -= remainingAmount;
                 pushLimitOrder(order.id);
                 
@@ -147,7 +202,7 @@ function popLimitOrder(bool isBid) public returns (uint256 orderID) {
                        
             else {
                 
-                // executeOrder(order.owner,msg.sender,fixedRateValue,order.amount,isBid);
+                executeOrder(order.owner,msg.sender,fixedRateValue,order.amount,isBid);
                 remainingAmount -= availableAmount;
             }
             

@@ -10,14 +10,21 @@ contract VirtualPool is Ownable {
     function deposit() public payable {
         _balances[msg.sender] += msg.value;
     }
-    function marginCall(address account, uint256 amount) public onlyOwner {
+    function marginCall(address account, uint256 amount) public onlyowner view{
         require(_balances[account] >= amount, "Insufficient balance");
     }
+    function transfer(address from, address to, uint256 amount) public onlyOwner {
+        require(_balances[from] >= amount, "Insufficient balance in 'from' account");
 
-    function withdraw(address payable recipient, uint256 amount) public onlyOwner {
-        require(address(this).balance >= amount, "Insufficient balance");
+        _balances[from] -= amount;
+        _balances[to] += amount;
+    }
+    function withdraw() public {
+        uint256 amountToWithdraw = _balances[msg.sender];
+        require(amountToWithdraw > 0, "No funds to withdraw");
 
-        recipient.transfer(amount);
+        _balances[msg.sender] = 0;
+        payable(msg.sender).transfer(amountToWithdraw);
     }
 
     function balanceOf(address account) public view returns (uint256) {

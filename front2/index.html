@@ -1,51 +1,54 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Interact with OrderBook and VirtualPool</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
-    </style>
-  </head>
-  <body>
-    <button id="connect">Connect to MetaMask</button>
-    <hr/>
-    <h3>Limit Orders</h3>
-    <button id="getOrders">Get Orders</button>
-    <div id="orders"></div>
-    <hr/>
-    <h3>Create Limit Order</h3>
-    <input type="number" id="fixedRate" placeholder="Fixed Rate">
-    <input type="number" id="amount" placeholder="Amount">
-    <select id="isBid">
-      <option value="true">Bid</option>
-      <option value="false">Ask</option>
+<head>
+    <title>Virtual Pool & Order Book</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div id="userBalance">Your balance: <span id="balance">0</span> ETH</div>
+
+    <h2>Virtual Pool</h2>
+    <input id="depositAmount" type="number" placeholder="Amount to deposit">
+    <button id="deposit">Deposit</button>
+    <button id="withdraw">Withdraw All</button>
+
+    <h3>Transfer</h3>
+    <input id="transferAddress" type="text" placeholder="Receiver's address">
+    <input id="transferAmount" type="number" placeholder="Amount to transfer">
+    <button id="transfer">Transfer</button>
+
+    <h2>Order Book</h2>
+    <h3>Market Order</h3>
+    <input id="marketOrderAmount" type="number" placeholder="Amount">
+    <select id="marketOrderType">
+        <option value="bid">Bid</option>
+        <option value="ask">Ask</option>
     </select>
-    <button id="createOrder">Create Order</button>
-    <hr/>
-    <h3>Place Market Order</h3>
-    <input type="number" id="marketAmount" placeholder="Amount">
-    <select id="marketIsBid">
-      <option value="true">Bid</option>
-      <option value="false">Ask</option>
+    <button id="marketOrder">Place Market Order</button>
+
+    <h3>Limit Order</h3>
+    <input id="limitOrderFixedRate" type="number" placeholder="Fixed Rate">
+    <input id="limitOrderAmount" type="number" placeholder="Amount">
+    <select id="limitOrderType">
+        <option value="bid">Bid</option>
+        <option value="ask">Ask</option>
     </select>
-    <button id="placeMarketOrder">Place Market Order</button>
-    <hr/>
-    <h3>VirtualPool Interactions</h3>
-    <button id="depositToPool">Deposit to Pool</button>
-    <button id="withdrawFromPool">Withdraw from Pool</button>
-    <input type="text" id="transferFrom" placeholder="Transfer From">
-    <input type="text" id="transferTo" placeholder="Transfer To">
-    <input type="number" id="transferAmount" placeholder="Transfer Amount">
-    <button id="transferInPool">Transfer in Pool</button>
-    <input type="text" id="checkBalance" placeholder="Check Balance Of">
-    <button id="checkBalanceButton">Check Balance</button>
-    <div id="balance"></div>
-    <hr/>
-    <button id="checkState">Check State of Transactions</button>
-    <div id="state"></div>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.3.4/dist/web3.min.js"></script>
+    <button id="limitOrder">Place Limit Order</button>
+
+    <h3>Cancel Order</h3>
+    <input id="cancelOrderID" type="number" placeholder="Order ID">
+    <button id="cancelOrder">Cancel Order</button>
+
+    <h3>Best Bid and Ask</h3>
+    <button id="bestBid">Check Best Bid</button>
+    <div id="bestBidDisplay"></div>
+    <button id="bestAsk">Check Best Ask</button>
+    <div id="bestAskDisplay"></div>
+
+    <h3>Check Transactions</h3>
+    <button id="checkTransactions">Check Transactions</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.2.11/web3.min.js"></script>
     <script src="app.js"></script>
-  </body>
+</body>
 </html>

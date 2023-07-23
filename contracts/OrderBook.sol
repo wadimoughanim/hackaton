@@ -79,7 +79,9 @@ contract OrderBook {
         return false;
         
     }
+    
     function executeOrder(address limitMember, address marketMember, uint256 fixedRateValue, uint256 amount, bool isBid) internal {
+        /*
         uint256 floatingRateId = 1000000;//id du floating rate
         
         address payerFixed = isBid? limitMember : marketMember;
@@ -89,8 +91,11 @@ contract OrderBook {
         IdToTransaction[setIdTrans]=Transaction(setIdTrans,payerFixed,receiverFixed,fixedRateValue,floatingRateId,block.number,block.number+periodToMaturity,amount);
         TransactionsAtMaturity[block.number+periodToMaturity].push(setIdTrans);
         setIdTrans++;
+        */
+
         
     }
+    
 
     // define interface nodet
     // interface RateContract {
@@ -102,16 +107,19 @@ contract OrderBook {
         pool.transfer(transaction.payerfixed,transaction.receiverfixed,transaction.amount*transaction.fixedRate*periodToMaturity);
         pool.transfer(transaction.receiverfixed,transaction.payerfixed,transaction.amount*floatingRate*periodToMaturity);
     }
-    function StateOfTransactions() public returns (uint256){
+    //function StateOfTransactions() public {
+        /*
 
         for (uint256 i=lastBlockSeen;i<block.number;i++){
-            Transaction[] memory transactions = IdToTransaction[TransactionsAtMaturity[i]];
-            for (uint256 j=0;j<transactions.length;j++){
-                executeTransaction(transactions[j]);
+            uint256[] memory TransactionId = TransactionsAtMaturity[i];
+            for (uint256 j=0;j<TransactionId.length;j++){
+                executeTransaction(IdToTransaction[TransactionId[j]]);
             }
         }
         lastBlockSeen = block.number;
+        
     }
+    */
 
 
 
@@ -147,7 +155,7 @@ contract OrderBook {
     function createLimitOrder(uint256 fixedRate, uint256 amount, bool isBid) public {
             Order memory order = Order(setId,fixedRate,block.timestamp,amount,msg.sender,isBid);
 
-            pool.marginCall(msg.sender,amount*delta*fixedRate*periodToMaturity);
+            //pool.marginCall(msg.sender,amount*delta*fixedRate*periodToMaturity);
             OrderMap[setId] = order;
             pushLimitOrder(setId);
             setId++;
@@ -207,7 +215,7 @@ contract OrderBook {
             
 
         }
-        pool.marginCall(msg.sender,amount*delta*periodToMaturity);
+        //pool.marginCall(msg.sender,amount*delta*periodToMaturity);
         
     }
     

@@ -1,411 +1,75 @@
-////////
-window.addEventListener('load', async () => {
-  if (window.ethereum) {
-      window.web3 = new Web3(ethereum);
-      try {
-          await ethereum.enable();
-          startApp();
-      } catch (error) {
-          console.error("User denied account access...");
-      }
-  }
-  else if (window.web3) {
-      window.web3 = new Web3(web3.currentProvider);
-      startApp();
-  }
-  else {
-      console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
-  }
-});
+import React, { useState, useEffect } from 'react';
+import Web3 from 'web3';
+import './App.css';
 
-async function startApp() {
-  const contractAddress = '0x7200D778eb4846e0dFad5278A1505bbCF64655B2';
-  const abi = [
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "bool",
-          "name": "isBid",
-          "type": "bool"
-        }
-      ],
-      "name": "MarketOrderNotExecuted",
-      "type": "event"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "AskOrders",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "BestAsk",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "BestBid",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "BidOrders",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "IdToTransaction",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "payerfixed",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "receiverfixed",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "fixedRate",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "floatingRate",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "asOfBlock",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "maturityBlock",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "OrderMap",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "price",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "time",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "internalType": "bool",
-          "name": "isBid",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "TransactionsAtMaturity",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "__init__",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "orderID",
-          "type": "uint256"
-        }
-      ],
-      "name": "cancelOrder",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "price",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "isBid",
-          "type": "bool"
-        }
-      ],
-      "name": "createLimitOrder",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bool",
-          "name": "isBid",
-          "type": "bool"
-        }
-      ],
-      "name": "getLength",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "isBid",
-          "type": "bool"
-        }
-      ],
-      "name": "marketOrder",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bool",
-          "name": "isBid",
-          "type": "bool"
-        }
-      ],
-      "name": "popLimitOrder",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "orderID",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "orderID",
-          "type": "uint256"
-        }
-      ],
-      "name": "pushLimitOrder",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "setId",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    }
-  ]; 
-  const contract = new web3.eth.Contract(abi, contractAddress);
+import orderBookABI from './OrderBook.json';
 
-  const connectButton = document.getElementById('connectButton');
-  connectButton.addEventListener('click', async () => {
-      const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-      connectButton.style.display = 'none';
-      document.getElementById('newOrderForm').style.display = 'block';
-      document.getElementById('orderbook').style.display = 'block';
-  });
+const web3 = new Web3(Web3.givenProvider);
+const orderBookContractAddress = 'YOUR_CONTRACT_ADDRESS';
+const orderBookContract = new web3.eth.Contract(orderBookABI, orderBookContractAddress);
 
-  const newOrderForm = document.getElementById('newOrderForm');
-  newOrderForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
+function App() {
+  const [account, setAccount] = useState(null);
+  const [bids, setBids] = useState([]);
+  const [asks, setAsks] = useState([]);
 
-      const accounts = await ethereum.request({ method: 'eth_accounts' });
-      const notional = document.getElementById('notional').value;
-      const isBid = document.getElementById('isBid').value === 'true';
-      const fixedRate = document.getElementById('fixedRate').value;
+  useEffect(() => {
+    const loadBlockchainData = async () => {
+      const accounts = await web3.eth.getAccounts();
+      setAccount(accounts[0]);
+    };
+    loadBlockchainData();
+  }, []);
 
-      await contract.methods.createLimitOrder(notional, fixedRate, isBid).send({ from: accounts[0] });
-      renderOrderbook();
-  });
+  const createLimitOrder = async (fixedRate, amount, isBid) => {
+    await orderBookContract.methods.createLimitOrder(fixedRate, amount, isBid).send({ from: account });
+    fetchOrders();
+  };
 
-  const marketOrderButton = document.getElementById('marketOrderButton');
-  marketOrderButton.addEventListener('click', async () => {
-      const accounts = await ethereum.request({ method: 'eth_accounts' });
-      const notional = document.getElementById('notional').value;
-      const isBid = document.getElementById('isBid').value === 'true';
+  const marketOrder = async (amount, isBid) => {
+    await orderBookContract.methods.marketOrder(amount, isBid).send({ from: account });
+    fetchOrders();
+  };
 
-      await contract.methods.marketOrder(notional, isBid).send({ from: accounts[0] });
-      renderOrderbook();
-  });
+  const fetchOrders = async () => {
+    const bidOrders = await orderBookContract.methods.BidOrders().call();
+    const askOrders = await orderBookContract.methods.AskOrders().call();
+    setBids(bidOrders);
+    setAsks(askOrders);
+  };
 
-  async function renderOrderbook() {
-      const bidOrderLength = await contract.methods.getLength(true).call();
-      const askOrderLength = await contract.methods.getLength(false).call();
-
-      const orderbookDiv = document.getElementById('orderbook');
-      orderbookDiv.innerHTML = '';
-
-      for (let i = 0; i < bidOrderLength; i++) {
-          const order = await contract.methods.OrderMap(i).call();
-          if (order.isBid) {
-              orderbookDiv.innerHTML += `<div>Bid Order: ${order.price} @ ${order.amount}</div>`;
-          }
-      }
-
-      for (let i = 0; i < askOrderLength; i++) {
-          const order = await contract.methods.OrderMap(i).call();
-          if (!order.isBid) {
-              orderbookDiv.innerHTML += `<div>Ask Order: ${order.price} @ ${order.amount}</div>`;
-          }
-      }
-  }
-
-  renderOrderbook();
+  return (
+    <div className="App">
+      <h1>Order Book</h1>
+      <button onClick={fetchOrders}>Refresh orders</button>
+      <h3>Create limit order</h3>
+      <button onClick={() => createLimitOrder(100, 10, true)}>Create bid limit order (fixedRate: 100, amount: 10)</button>
+      <button onClick={() => createLimitOrder(200, 10, false)}>Create ask limit order (fixedRate: 200, amount: 10)</button>
+      <h3>Create market order</h3>
+      <button onClick={() => marketOrder(10, true)}>Create bid market order (amount: 10)</button>
+      <button onClick={() => marketOrder(10, false)}>Create ask market order (amount: 10)</button>
+      <h2>Bid Orders</h2>
+      {bids.length > 0 ? (
+        <ul>
+          {bids.map((bid, index) => (
+            <li key={index}>{`Rate: ${bid.rate}, Amount: ${bid.amount}`}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>No bids</p>
+      )}
+      <h2>Ask Orders</h2>
+      {asks.length > 0 ? (
+        <ul>
+          {asks.map((ask, index) => (
+            <li key={index}>{`Rate: ${ask.rate}, Amount: ${ask.amount}`}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>No asks</p>
+      )}
+    </div>
+  );
 }
+
+export default App;

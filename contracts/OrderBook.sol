@@ -17,7 +17,7 @@ contract OrderBook {
         address payerfixed;
         address receiverfixed;
         uint256 fixedRate;
-        uint256 floatingRate;
+        uint256 floatingRateId;
         uint256 asOfBlock;
         uint256 maturityBlock;
         uint256 amount;
@@ -33,13 +33,16 @@ contract OrderBook {
     uint256 public delta=5;
     uint256 public periodToMaturity=10;
     uint256 public lastBlockSeen=block.number;
+    VirtualPool public pool;
 
 
 
     function  __init__()  public {
         setId = 0;
         BidOrders = new uint256[](0);
-        AskOrders = new uint256[](0);   
+        AskOrders = new uint256[](0); 
+        pool = new VirtualPool();
+
     }
 
     //functions used for test
@@ -76,99 +79,93 @@ contract OrderBook {
         return false;
         
     }
-function executeOrder(address limitMember, address marketMember, uint256 fixedRateValue, uint256 amount, bool isBid) internal {
-    uint256 floatingRate = 1000000;//id du floating rate
-    
-    address payerFixed = isBid? limitMember : marketMember;
-    address receiverFixed = isBid? marketMember : limitMember;
+    function executeOrder(address limitMember, address marketMember, uint256 fixedRateValue, uint256 amount, bool isBid) internal {
+        uint256 floatingRateId = 1000000;//id du floating rate
+        
+        address payerFixed = isBid? limitMember : marketMember;
+        address receiverFixed = isBid? marketMember : limitMember;
+        // query Nodet
 
-    IdToTransaction[setIdTrans]=Transaction(setIdTrans,payerFixed,receiverFixed,fixedRateValue,floatingRate,block.number,block.number+periodToMaturity,amount);
-    TransactionsAtMaturity[block.number+periodToMaturity].push(setIdTrans);
-    setIdTrans++;
-    
-    // Transfer tokens from taker to owner
-    //require(token.transferFrom(taker, owner, tradeValue), "OrderBook: executeOrder: transferFrom failed");
+        IdToTransaction[setIdTrans]=Transaction(setIdTrans,payerFixed,receiverFixed,fixedRateValue,floatingRateId,block.number,block.number+periodToMaturity,amount);
+        TransactionsAtMaturity[block.number+periodToMaturity].push(setIdTrans);
+        setIdTrans++;
+        
+    }
 
-    // Transfer tokens from owner to taker
-    //require(token.transferFrom(owner, taker, tradeAmount), "OrderBook: executeOrder: transferFrom failed");
+    // define interface nodet
+    // interface RateContract {
+    //     function executeRequest() external returns (bytes32);
+    // }
 
-    // Emit an event
-    //emit OrderExecuted(owner, taker, tradeAmount, fixedRateValue, isBid);
-}
-function executeTransaction(Transaction transaction) public {
-    require(block.number>=transaction.maturityBlock,"OrderBook: executeTransaction: transaction not mature");
-    require(block.number<=transaction.maturityBlock+delta,"OrderBook: executeTransaction: transaction expired");
-    require(msg.sender==transaction.payerfixed,"OrderBook: executeTransaction: sender not payer");
-    require(transaction.amount<=balanceOf(transaction.payerfixed),"OrderBook: executeTransaction: not enough balance");
-    require(transaction.amount<=balanceOf(transaction.receiverfixed),"OrderBook: executeTransaction: not enough balance");
-    balanceOf[transaction.payerfixed]-=transaction.amount;
-    balanceOf[transaction.receiverfixed]+=transaction.amount;
-    delete IdToTransaction[transaction.id];
-}
-function StateOfTransactions(Transaction transaction) public view returns (uint256){
+    function executeTransaction(Transaction memory transaction) public {
+        uint256 floatingRate = 5;
+        pool.transfer(transaction.payerfixed,transaction.receiverfixed,transaction.amount*transaction.fixedRate*periodToMaturity);
+        pool.transfer(transaction.receiverfixed,transaction.payerfixed,transaction.amount*floatingRate*periodToMaturity);
+    }
+    function StateOfTransactions() public returns (uint256){
 
-    for (uint256 i=lastBlockSeen;i<block.number;i++){
-        Transaction[] memory transactions = IdToTransaction[TransactionsAtMaturity[i]];
-        for (uint256 j=0;j<transactions.length;j++){
-            executeTransaction(transactions[j]);
+        for (uint256 i=lastBlockSeen;i<block.number;i++){
+            Transaction[] memory transactions = IdToTransaction[TransactionsAtMaturity[i]];
+            for (uint256 j=0;j<transactions.length;j++){
+                executeTransaction(transactions[j]);
+            }
         }
-    }
-    lastBlockSeen = block.number;
-}
-
-
-
-
-
-function pushLimitOrder(uint256 orderID) public {
-    Order memory order = OrderMap[orderID];
-    uint256[] storage orders = order.isBid ? BidOrders : AskOrders;
-
-    uint256 i = 0;
-    while (i < orders.length && firstBetween(orders[i], orderID)) {
-        i++;
+        lastBlockSeen = block.number;
     }
 
-    // Add a new element at the end
-    orders.push(orderID);
 
-    // Shift elements to right of 'i' by one position
-    if (i < orders.length - 1) {
-        for (uint256 j = orders.length - 2; j != i; j--) {
-            orders[j + 1] = orders[j];
+
+
+
+    function pushLimitOrder(uint256 orderID) public {
+        Order memory order = OrderMap[orderID];
+        uint256[] storage orders = order.isBid ? BidOrders : AskOrders;
+
+        uint256 i = 0;
+        while (i < orders.length && firstBetween(orders[i], orderID)) {
+            i++;
         }
-    }
 
-    // Insert orderID at 'i'
-    orders[i] = orderID;
-}
+        // Add a new element at the end
+        orders.push(orderID);
+
+        // Shift elements to right of 'i' by one position
+        if (i < orders.length - 1) {
+            for (uint256 j = orders.length - 2; j != i; j--) {
+                orders[j + 1] = orders[j];
+            }
+        }
+
+        // Insert orderID at 'i'
+        orders[i] = orderID;
+    }
 
 
 
 
 
     function createLimitOrder(uint256 fixedRate, uint256 amount, bool isBid) public {
-        Order memory order = Order(setId,fixedRate,block.timestamp,amount,msg.sender,isBid);
+            Order memory order = Order(setId,fixedRate,block.timestamp,amount,msg.sender,isBid);
 
-        //marginCall(msg.sender,amount*delta*fixedRate*periodToMaturity);
-        OrderMap[setId] = order;
-        pushLimitOrder(setId);
-        setId++;
-        
-    }
+            pool.marginCall(msg.sender,amount*delta*fixedRate*periodToMaturity);
+            OrderMap[setId] = order;
+            pushLimitOrder(setId);
+            setId++;
+            
+        }
 
-function popLimitOrder(bool isBid) public returns (uint256 orderID) {
-    if (isBid) {
-        require(BidOrders.length > 0, "No more bid orders");
-        orderID = BidOrders[BidOrders.length - 1];
-        BidOrders.pop();
-    } else {
-        require(AskOrders.length > 0, "No more ask orders");
-        orderID = AskOrders[AskOrders.length - 1];
-        AskOrders.pop();
+    function popLimitOrder(bool isBid) public returns (uint256 orderID) {
+        if (isBid) {
+            require(BidOrders.length > 0, "No more bid orders");
+            orderID = BidOrders[BidOrders.length - 1];
+            BidOrders.pop();
+        } else {
+            require(AskOrders.length > 0, "No more ask orders");
+            orderID = AskOrders[AskOrders.length - 1];
+            AskOrders.pop();
+        }
+        return orderID;
     }
-    return orderID;
-}
 
 
 
@@ -178,6 +175,7 @@ function popLimitOrder(bool isBid) public returns (uint256 orderID) {
     function marketOrder(uint256 amount, bool isBid) public {
         uint256[] memory orders = isBid ? BidOrders : AskOrders;
         uint256 remainingAmount = amount;
+        
         
     
         while (remainingAmount > 0) {
@@ -206,8 +204,10 @@ function popLimitOrder(bool isBid) public returns (uint256 orderID) {
                 remainingAmount -= availableAmount;
             }
             
+            
 
         }
+        pool.marginCall(msg.sender,amount*delta*periodToMaturity);
         
     }
     

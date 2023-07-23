@@ -1,82 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Order Book Interface</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.2.9/web3.min.js"></script>
-    <script src="./app.js"></script>
+    <title>Decentralized Market</title>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
 </head>
 <body>
-    <h1>Order Book Interface</h1>
-
     <button id="connectButton">Connect Metamask</button>
 
-    <form id="newOrderForm" class="hidden">
-        <label for="notional">Notional:</label><br>
-        <input type="number" id="notional" name="notional"><br>
-        <label for="isBid">Bid or Ask:</label><br>
-        <select id="isBid" name="isBid">
-            <option value="true">Bid</option>
-            <option value="false">Ask</option>
-        </select><br>
-        <label for="fixedRate">Fixed Rate:</label><br>
-        <input type="number" id="fixedRate" name="fixedRate"><br>
-        <button type="button" id="marketOrderButton">Market Order</button>
-        <input type="submit" value="Submit Limit Order">
-    </form>
+    <h2>Create Limit Order</h2>
+    <input type="number" id="price" placeholder="Price">
+    <input type="number" id="amount" placeholder="Amount">
+    <select id="type">
+        <option value="bid">Bid</option>
+        <option value="ask">Ask</option>
+    </select>
+    <button id="createLimitOrderButton">Create Limit Order</button>
 
-    <div id="orderbook" class="hidden">
-        <!-- Order book will be rendered here -->
-    </div>
+    <h2>Create Market Order</h2>
+    <input type="number" id="amountMarket" placeholder="Amount">
+    <select id="typeMarket">
+        <option value="bid">Bid</option>
+        <option value="ask">Ask</option>
+    </select>
+    <button id="createMarketOrderButton">Create Market Order</button>
 
-</body>
-</html>
-///////////////////////////////
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Decentralized Exchange</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.3.4/dist/web3.min.js"></script>
-</head>
-<body>
-    <div id="orderbook"></div>
+    <button id="checkTransactionButton">Check Transaction State</button>
 
-    <script>
-        // Initialisation de web3
-        let web3 = new Web3(window.ethereum);
-        await window.ethereum.enable();
-
-        // Initialisation du contrat
-        let contract = new web3.eth.Contract(contractABI, contractAddress);
-
-        // Fonction pour rendre le carnet de commandes
-        async function renderOrderbook() {
-            const bidOrderLength = await contract.methods.getLength(true).call();
-            const askOrderLength = await contract.methods.getLength(false).call();
-
-            const orderbookDiv = document.getElementById('orderbook');
-            orderbookDiv.innerHTML = '';
-
-            for (let i = 0; i < bidOrderLength; i++) {
-                const order = await contract.methods.OrderMap(i).call();
-                if (order.isBid) {
-                    orderbookDiv.innerHTML += `<div>Bid Order: ${order.price} @ ${order.amount}</div>`;
-                }
-            }
-
-            for (let i = 0; i < askOrderLength; i++) {
-                const order = await contract.methods.OrderMap(i).call();
-                if (!order.isBid) {
-                    orderbookDiv.innerHTML += `<div>Ask Order: ${order.price} @ ${order.amount}</div>`;
-                }
-            }
-        }
-
-        // Appeler la fonction de rendu du carnet de commandes à l'initialisation
-        renderOrderbook();
-
-        // Réactualiser le carnet de commandes toutes les trois secondes
-        setInterval(renderOrderbook, 3000); // 3000 millisecondes équivalent à 3 secondes
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>

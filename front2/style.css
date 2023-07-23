@@ -1,11 +1,16 @@
-body {
-    font-family: Arial, sans-serif;
-}
-
-.hidden {
-    display: none;
-}
-
-#orderbook {
-    margin-top: 20px;
-}
+.App {
+    text-align: center;
+  }
+  
+  .App h1 {
+    color: #4caf50;
+  }
+  
+  .App button {
+    margin: 20px;
+    padding: 10px;
+    font-size: 16px;
+  }
+  
+  /* Add more styling here */
+  

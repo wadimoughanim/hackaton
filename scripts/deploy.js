@@ -31,14 +31,13 @@ async function main() {
     const amount = 10; // Change as needed
     const isBid = true; // Change as needed
     const orderBookWithSigner = orderBook.connect(wallet);
-    await orderBookWithSigner.createLimitOrder(price, amount, isBid);
+    await orderBookWithSigner.createLimitOrder(price, amount, isBid, {gasPrice: gasPrice});
 
     // Create ask orders
     const priceAsk = 200 + i * 10; // Change as needed
     const amountAsk = 10; // Change as needed
     const isAsk = false; // Change as needed
-    const orderBookWithSignerAsk = orderBook.connect(wallet);
-    await orderBookWithSignerAsk.createLimitOrder(priceAsk, amountAsk, isAsk);
+    await orderBookWithSigner.createLimitOrder(priceAsk, amountAsk, isAsk, {gasPrice: gasPrice});
   }
 
   console.log("2 different limit orders created.");

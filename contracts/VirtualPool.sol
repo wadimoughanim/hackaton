@@ -10,7 +10,7 @@ contract VirtualPool is Ownable {
     function deposit() public payable {
         _balances[msg.sender] += msg.value;
     }
-    function marginCall(address account, uint256 amount) public onlyowner view{
+    function marginCall(address account, uint256 amount) public onlyOwner{
         require(_balances[account] >= amount, "Insufficient balance");
     }
     function transfer(address from, address to, uint256 amount) public onlyOwner {

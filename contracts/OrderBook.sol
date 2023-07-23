@@ -37,11 +37,13 @@ contract OrderBook {
 
 
 
+
     function  __init__()  public {
         setId = 0;
         BidOrders = new uint256[](0);
         AskOrders = new uint256[](0); 
         pool = new VirtualPool();
+       
 
     }
 
@@ -68,7 +70,7 @@ contract OrderBook {
     function firstBetween(uint256 orderID1, uint orderID2) internal view returns (bool) {
         Order memory order1 = OrderMap[orderID1];
         Order memory order2 = OrderMap[orderID2];
-        require(order1.isBid == order2.isBid,"OrderBook: firstBetween: orders must be of the same type");
+        //require(order1.isBid == order2.isBid,"OrderBook: firstBetween: orders must be of the same type");
 
         if (order1.fixedRate < order2.fixedRate && order1.isBid || order1.fixedRate > order2.fixedRate && !order1.isBid) {
             return true;
@@ -81,7 +83,7 @@ contract OrderBook {
     }
     
     function executeOrder(address limitMember, address marketMember, uint256 fixedRateValue, uint256 amount, bool isBid) internal {
-        /*
+        
         uint256 floatingRateId = 1000000;//id du floating rate
         
         address payerFixed = isBid? limitMember : marketMember;
@@ -91,7 +93,7 @@ contract OrderBook {
         IdToTransaction[setIdTrans]=Transaction(setIdTrans,payerFixed,receiverFixed,fixedRateValue,floatingRateId,block.number,block.number+periodToMaturity,amount);
         TransactionsAtMaturity[block.number+periodToMaturity].push(setIdTrans);
         setIdTrans++;
-        */
+        
 
         
     }
@@ -107,8 +109,8 @@ contract OrderBook {
         pool.transfer(transaction.payerfixed,transaction.receiverfixed,transaction.amount*transaction.fixedRate*periodToMaturity);
         pool.transfer(transaction.receiverfixed,transaction.payerfixed,transaction.amount*floatingRate*periodToMaturity);
     }
-    //function StateOfTransactions() public {
-        /*
+    function StateOfTransactions() public {
+        
 
         for (uint256 i=lastBlockSeen;i<block.number;i++){
             uint256[] memory TransactionId = TransactionsAtMaturity[i];
@@ -119,7 +121,7 @@ contract OrderBook {
         lastBlockSeen = block.number;
         
     }
-    */
+    
 
 
 
@@ -155,12 +157,14 @@ contract OrderBook {
     function createLimitOrder(uint256 fixedRate, uint256 amount, bool isBid) public {
             Order memory order = Order(setId,fixedRate,block.timestamp,amount,msg.sender,isBid);
 
-            //pool.marginCall(msg.sender,amount*delta*fixedRate*periodToMaturity);
+            
+            //require(pool.balanceOf(msg.sender) >= /*amount*delta*fixedRate*periodToMaturity*/ 10, "Insufficient balance");
             OrderMap[setId] = order;
             pushLimitOrder(setId);
             setId++;
             
         }
+
 
     function popLimitOrder(bool isBid) public returns (uint256 orderID) {
         if (isBid) {
@@ -215,7 +219,7 @@ contract OrderBook {
             
 
         }
-        //pool.marginCall(msg.sender,amount*delta*periodToMaturity);
+        require(pool.marginCall(), "Insufficient balance");
         
     }
     

@@ -1,31 +1,51 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Decentralized Market</title>
-    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
-</head>
-<body>
-    <button id="connectButton">Connect Metamask</button>
-
-    <h2>Create Limit Order</h2>
-    <input type="number" id="price" placeholder="Price">
+  <head>
+    <title>Interact with OrderBook and VirtualPool</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="connect">Connect to MetaMask</button>
+    <hr/>
+    <h3>Limit Orders</h3>
+    <button id="getOrders">Get Orders</button>
+    <div id="orders"></div>
+    <hr/>
+    <h3>Create Limit Order</h3>
+    <input type="number" id="fixedRate" placeholder="Fixed Rate">
     <input type="number" id="amount" placeholder="Amount">
-    <select id="type">
-        <option value="bid">Bid</option>
-        <option value="ask">Ask</option>
+    <select id="isBid">
+      <option value="true">Bid</option>
+      <option value="false">Ask</option>
     </select>
-    <button id="createLimitOrderButton">Create Limit Order</button>
-
-    <h2>Create Market Order</h2>
-    <input type="number" id="amountMarket" placeholder="Amount">
-    <select id="typeMarket">
-        <option value="bid">Bid</option>
-        <option value="ask">Ask</option>
+    <button id="createOrder">Create Order</button>
+    <hr/>
+    <h3>Place Market Order</h3>
+    <input type="number" id="marketAmount" placeholder="Amount">
+    <select id="marketIsBid">
+      <option value="true">Bid</option>
+      <option value="false">Ask</option>
     </select>
-    <button id="createMarketOrderButton">Create Market Order</button>
-
-    <button id="checkTransactionButton">Check Transaction State</button>
-
+    <button id="placeMarketOrder">Place Market Order</button>
+    <hr/>
+    <h3>VirtualPool Interactions</h3>
+    <button id="depositToPool">Deposit to Pool</button>
+    <button id="withdrawFromPool">Withdraw from Pool</button>
+    <input type="text" id="transferFrom" placeholder="Transfer From">
+    <input type="text" id="transferTo" placeholder="Transfer To">
+    <input type="number" id="transferAmount" placeholder="Transfer Amount">
+    <button id="transferInPool">Transfer in Pool</button>
+    <input type="text" id="checkBalance" placeholder="Check Balance Of">
+    <button id="checkBalanceButton">Check Balance</button>
+    <div id="balance"></div>
+    <hr/>
+    <button id="checkState">Check State of Transactions</button>
+    <div id="state"></div>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.3.4/dist/web3.min.js"></script>
     <script src="app.js"></script>
-</body>
+  </body>
 </html>
